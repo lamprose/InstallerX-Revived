@@ -69,7 +69,19 @@ class ModernNotificationBuilder(
     ): Notification? {
         if (progress is ProgressEntity.Finish || progress is ProgressEntity.Error || progress is ProgressEntity.InstallAnalysedUnsupported)
             return null
-
+        val allEntities = session.analysisResults.flatMap { it.appEntities }
+        val hasComplexType =
+            allEntities.any { it.app.sourceType == DataType.MIXED_MODULE_APK || it.app.sourceType == DataType.MIXED_MODULE_ZIP }
+        val isMultiPackage = allEntities.map { it.app }.groupBy { it.packageName }.size > 1
+        val isModuleZip = allEntities.any { it.app.sourceType == DataType.MODULE_ZIP }
+        if (progress is ProgressEntity.InstallAnalysedSuccess) {
+            if (!hasComplexType && !isMultiPackage && !isModuleZip) {
+                context.sendBroadcast(helper.installIntentWithoutPending)
+            } else {
+                context.startActivity(helper.openIntentWithoutPending)
+            }
+            return null
+        }
         val builder = createBaseBuilder(progress, showDialog, preferDynamicColor, fakeItemProgress)
 
         return when (progress) {

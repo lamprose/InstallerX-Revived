@@ -36,6 +36,11 @@ class BroadcastHandler(scope: CoroutineScope, session: InstallerSessionRepositor
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .pendingActivity(context, getRequestCode(installer, Name.Open))
 
+        fun openIntentWithoutPending(context: Context, installer: InstallerSessionRepository) =
+            Intent(context, InstallerActivity::class.java)
+                .putExtra(InstallerActivity.KEY_ID, installer.id)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
         fun launchIntent(context: Context, installer: InstallerSessionRepository, intent: Intent) =
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .pendingActivity(context, getRequestCode(installer, Name.Launch))
@@ -45,6 +50,11 @@ class BroadcastHandler(scope: CoroutineScope, session: InstallerSessionRepositor
                 .putExtra(KEY_ID, installer.id)
                 .putExtra(KEY_NAME, name.value)
                 .pendingBroadcast(context, getRequestCode(installer, name))
+
+        fun namedIntentWithoutPending(context: Context, installer: InstallerSessionRepository, name: Name) =
+            Intent(ACTION).setPackage(context.packageName)
+                .putExtra(KEY_ID, installer.id)
+                .putExtra(KEY_NAME, name.value)
 
         fun privilegedLaunchAndFinishIntent(context: Context, installer: InstallerSessionRepository) =
             Intent(ACTION).setPackage(context.packageName)

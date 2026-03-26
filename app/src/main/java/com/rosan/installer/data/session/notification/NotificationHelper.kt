@@ -37,6 +37,10 @@ class NotificationHelper(
     val cancelIntent: PendingIntent = BroadcastHandler.namedIntent(context, session, BroadcastHandler.Name.Cancel)
     val finishIntent: PendingIntent = BroadcastHandler.namedIntent(context, session, BroadcastHandler.Name.Finish)
 
+    val openIntentWithoutPending = BroadcastHandler.openIntentWithoutPending(context, session)
+
+    val installIntentWithoutPending = BroadcastHandler.namedIntentWithoutPending(context, session, BroadcastHandler.Name.Install)
+
     // Resolve specific launch intent considering privileged access
     fun getLaunchPendingIntent(packageName: String?): PendingIntent? {
         val launchIntent = packageName?.let {

@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,8 @@ import com.rosan.installer.data.session.manager.InstallerSessionManager
 import com.rosan.installer.domain.device.model.Level
 import com.rosan.installer.domain.device.model.PermissionType
 import com.rosan.installer.domain.device.provider.PermissionChecker
+import com.rosan.installer.domain.engine.model.AppEntity
+import com.rosan.installer.domain.engine.model.DataType
 import com.rosan.installer.domain.session.model.ProgressEntity
 import com.rosan.installer.domain.session.repository.InstallerSessionRepository
 import com.rosan.installer.domain.settings.model.ThemeState
@@ -33,6 +36,8 @@ import com.rosan.installer.domain.settings.repository.BooleanSetting
 import com.rosan.installer.ui.common.auth.BiometricAuthBridge
 import com.rosan.installer.ui.common.permission.PermissionRequester
 import com.rosan.installer.ui.page.main.installer.InstallerPage
+import com.rosan.installer.ui.page.main.installer.InstallerViewAction
+import com.rosan.installer.ui.page.main.installer.InstallerViewModel
 import com.rosan.installer.ui.page.miuix.installer.MiuixInstallerPage
 import com.rosan.installer.ui.theme.InstallerTheme
 import com.rosan.installer.util.hasFlag
@@ -41,8 +46,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 class InstallerActivity : ComponentActivity(), KoinComponent {
@@ -336,6 +343,31 @@ class InstallerActivity : ComponentActivity(), KoinComponent {
                         InstallerPage(session)
                     }
                 }
+            }
+            val viewModel: InstallerViewModel = koinViewModel { parametersOf(session) }
+            LaunchedEffect(Unit) {
+                val sourceType =
+                    session.analysisResults.firstOrNull()?.appEntities?.firstOrNull()?.app?.sourceType
+                        ?: DataType.NONE
+                if (sourceType == DataType.MIXED_MODULE_ZIP) {
+                    val allSelectableEntities = session.analysisResults.flatMap { it.appEntities }
+                    val moduleSelectableEntity =
+                        allSelectableEntities.firstOrNull { it.app is AppEntity.ModuleEntity }
+                    if (moduleSelectableEntity != null) {
+                        viewModel.dispatch(
+                            InstallerViewAction.ToggleSelection(
+                                packageName = moduleSelectableEntity.app.packageName,
+                                entity = moduleSelectableEntity,
+                                isMultiSelect = false
+                            )
+                        )
+                        viewModel.dispatch(InstallerViewAction.Install(true))
+                    }
+
+                } else if (sourceType == DataType.MODULE_ZIP) {
+                    viewModel.dispatch(InstallerViewAction.Install(true))
+                }
+
             }
         }
     }
