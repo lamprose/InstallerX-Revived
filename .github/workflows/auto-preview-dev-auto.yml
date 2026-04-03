@@ -166,11 +166,10 @@ jobs:
 
       - name: Upload to Telegram
         env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-          BOT_CI_SESSION: ${{ secrets.BOT_CI_SESSION }}
+          APK_PATH: ${{ steps.rename_apks.outputs.online_apk }}
+          COMMIT_MESSAGE: ${{ steps.changelog.outputs.changelog_body }}
         run: |
           pip3 install requests
-          python3 .github/tel-bot.py "${{ steps.changelog.outputs.changelog_body }}${{ steps.changelog.outputs.changelog_full_link }}" "${{ steps.rename_apks.outputs.online_apk }}"
+          python3 .github/tel-bot.py

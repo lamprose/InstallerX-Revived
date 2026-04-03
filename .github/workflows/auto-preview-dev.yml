@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - 'main'
       - 'weblate-dev'
+      - 'dev-auto'
     paths:
       - 'app/**'
       - 'build.gradle.kts'
